@@ -75,7 +75,7 @@ determine remainders for hours (if days) and minutes
 return string "days:hours:minutes"
 
 fn "determine_weekdays" arguements : string:start_weekday, interger:day_duration
-if day_duration is not greater than 0
+if day_duration is not truthy
   return start_weekday
 parse start_weekday into lowercase
 array of weekdays

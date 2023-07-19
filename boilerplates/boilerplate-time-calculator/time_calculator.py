@@ -1,10 +1,35 @@
+def add_time_in_minutes(start_hours,start_minutes,addend_hours,addend_minutes):
+    return (start_hours*60)+start_minutes+(addend_hours*60)+addend_minutes
+
+def convert_minutes_into_time(result_in_minutes):
+    hours = int(result_in_minutes/60)
+    is_days = hours>=24
+    remaining_hours = int(hours%24) if is_days else hours
+    hours_string = f'{hours if hours>10 else f"0{hours}"}' if not is_days else f'{remaining_hours if remaining_hours>10 else f"0{remaining_hours}"}'
+    days = int(hours/24) if is_days else 0
+    days_string = f'{days if days>10 else f"0{days}"}'
+    minutes = int(result_in_minutes%60)
+    minutes_string = f'{minutes if minutes>10 else f"0{minutes}"}'
+    return f'{days_string}:{hours_string}:{minutes_string}'
+
+
+def determine_weekdays(start_weekday,day_duration):
+    if not day_duration:
+        return(start_weekday.capitalize())
+    start_weekday = start_weekday.lower()
+    weekdays = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
+    if start_weekday.lower() not in weekdays:
+        return None
+    if int(day_duration)>7:
+        day_duration = int(day_duration%7)
+    return weekdays[weekdays.index(start_weekday)+int(day_duration)].capitalize()
 def add_time(starting_time, addend_time, day_of_week="") -> str:
     start_hours, start_minutes, meridian = (
         int(starting_time.split()[0].split(":")[0]),
         int(starting_time.split()[0].split(":")[1]),
         starting_time.split()[1],
     )
-    is_meridian = True if meridian == 'PM' else False
+    is_meridian = meridian == 'PM'
     if is_meridian:
         start_hours +=12
     addend_hours,addend_minutes = (
@@ -12,8 +37,20 @@ def add_time(starting_time, addend_time, day_of_week="") -> str:
         int(addend_time.split(":")[1])
     )
     is_weekday = True if day_of_week != "" else False
-    print(is_weekday)
-add_time("2:59 AM", "24:00", "saturDay")
+    result_in_minutes = add_time_in_minutes(start_hours,start_minutes,addend_hours,addend_minutes)
+    result_days,result_hours,result_minutes = (
+        convert_minutes_into_time(result_in_minutes).split(':')[0],
+        convert_minutes_into_time(result_in_minutes).split(':')[1],
+        convert_minutes_into_time(result_in_minutes).split(':')[2]
+    )
+    if is_weekday:
+        result_weekday = determine_weekdays(day_of_week,result_days)
+    if is_meridian:
+        result_hours -= 12
+    return f"{result_hours}:{result_minutes} {meridian}, {result_weekday}"
+print(add_time("2:59 AM", "24:00", "saturDay"))
+
+
 # input: "2:59 AM", "24:00", "saturDay"
 # expected output "2:59 AM, Sunday (next day)"
 # from datetime import datetime
