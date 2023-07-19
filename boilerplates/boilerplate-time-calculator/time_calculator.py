@@ -5,12 +5,14 @@ def convert_minutes_into_time(result_in_minutes):
     hours = int(result_in_minutes/60)
     is_days = hours>=24
     remaining_hours = int(hours%24) if is_days else hours
-    hours_string = f'{hours if hours>10 else f"0{hours}"}' if not is_days else f'{remaining_hours if remaining_hours>10 else f"0{remaining_hours}"}'
+    hours_string = f'{hours}' if not is_days else f'{remaining_hours if remaining_hours>10 else remaining_hours}'
+    meridian = "PM" if int(hours_string)>=12 else "AM"
+    hours_string = int(hours_string)+12 if int(hours_string)==0 and meridian=='AM' else hours_string
     days = int(hours/24) if is_days else 0
-    days_string = f'{days if days>10 else f"0{days}"}'
+    days_string = f'{days}'
     minutes = int(result_in_minutes%60)
     minutes_string = f'{minutes if minutes>10 else f"0{minutes}"}'
-    return f'{days_string}:{hours_string}:{minutes_string}'
+    return f'{days_string}:{hours_string}:{minutes_string}:{meridian}'
 
 
 def determine_weekdays(start_weekday,day_duration):
@@ -21,9 +23,11 @@ def determine_weekdays(start_weekday,day_duration):
     if start_weekday.lower() not in weekdays:
         return None
     if int(day_duration)>7:
-        day_duration = int(day_duration%7)
-    return weekdays[weekdays.index(start_weekday)+int(day_duration)].capitalize()
+        day_duration = int(day_duration)%7
+    new_index = weekdays.index(start_weekday)+int(day_duration) if weekdays.index(start_weekday)+int(day_duration)>7 else weekdays.index(start_weekday)+int(day_duration) - len(weekdays)
+    return weekdays[new_index].capitalize()
 def add_time(starting_time, addend_time, day_of_week="") -> str:
+    day_of_week
     start_hours, start_minutes, meridian = (
         int(starting_time.split()[0].split(":")[0]),
         int(starting_time.split()[0].split(":")[1]),
@@ -38,21 +42,24 @@ def add_time(starting_time, addend_time, day_of_week="") -> str:
     )
     is_weekday = True if day_of_week != "" else False
     result_in_minutes = add_time_in_minutes(start_hours,start_minutes,addend_hours,addend_minutes)
-    result_days,result_hours,result_minutes = (
+    result_days,result_hours,result_minutes,result_meridian = (
         convert_minutes_into_time(result_in_minutes).split(':')[0],
         convert_minutes_into_time(result_in_minutes).split(':')[1],
-        convert_minutes_into_time(result_in_minutes).split(':')[2]
+        convert_minutes_into_time(result_in_minutes).split(':')[2],
+        convert_minutes_into_time(result_in_minutes).split(':')[3]
     )
+    is_days_string = ' (next day)' if int(result_days) == 1 else f" ({result_days} days later)"
+    is_days = int(result_days)>0
     if is_weekday:
-        result_weekday = determine_weekdays(day_of_week,result_days)
-    if is_meridian:
-        result_hours -= 12
-    return f"{result_hours}:{result_minutes} {meridian}, {result_weekday}"
-print(add_time("2:59 AM", "24:00", "saturDay"))
-
-
+        result_weekday = f" {determine_weekdays(day_of_week,result_days)}"
+    if int(result_hours)>12:
+        result_hours = int(result_hours)-12
+    return f"{int(result_hours)}:{result_minutes} {result_meridian}{',' if is_weekday else ''}{result_weekday if is_weekday else ''}{is_days_string if is_days else ''}"
+print(add_time("11:40 AM", "0:25"))
+# actual = add_time("11:40 AM", "0:25")
+# expected = "12:05 PM"
 # input: "2:59 AM", "24:00", "saturDay"
-# expected output "2:59 AM, Sunday (next day)"
+# expected output "6:18 AM, Monday (20 days later)"
 # from datetime import datetime
 # from datetime import timedelta
 # from datetimeReplacement import addTimeInMinutes,formatMinutes
